@@ -1,0 +1,13 @@
+---
+openapi: 3.0.3
+info:
+  version: "1.0.0"
+  title: Golang OpenAPI Template
+paths:
+  /health:
+    get:
+      operationId: health
+      description: returns 200 ok if server is running
+      responses:
+        "200":
+          description: ok
