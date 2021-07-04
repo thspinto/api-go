@@ -1,4 +1,7 @@
 # api-go
+[![CodeQL](https://github.com/thspinto/go-api/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/thspinto/go-api/actions/workflows/codeql-analysis.yml)
+[![golangci-lint](https://github.com/thspinto/go-api/actions/workflows/main.yml/badge.svg)](https://github.com/thspinto/go-api/actions/workflows/main.yml)
+
 Simple template for Golang APIs
 
 ## Supporting new cli commands
