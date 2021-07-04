@@ -1,13 +1,12 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -32,12 +31,19 @@ to quickly create a Cobra application.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
+
+	lvl, err := log.ParseLevel(viper.GetString("verbosity"))
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Error("Failed to parse log level")
+	}
+	log.SetLevel(lvl)
 }
 
 func init() {
 	// Change your env prefix here
 	viper.SetDefault("envPrefix", "GO_API")
-
 	cobra.OnInitialize(initConfig)
 
 	// Here you will define your flags and configuration settings.
@@ -48,7 +54,7 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.Flags().StringP("verbosity", "v", "", "set log verbosity")
+	rootCmd.PersistentFlags().StringP("verbosity", "v", "", "set log verbosity")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -67,9 +73,14 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		log.WithFields(log.Fields{
+			"file": viper.ConfigFileUsed(),
+		}).Info("Using config file")
 	}
 	if err := viper.BindPFlags(rootCmd.Flags()); err != nil {
+		panic(err)
+	}
+	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
 		panic(err)
 	}
 }
@@ -81,6 +92,12 @@ func configureViper(prefix string) (fn func(*pflag.Flag)) {
 			panic(err)
 		}
 		env := strings.Join([]string{viper.GetString("envPrefix"), strings.ReplaceAll(prefixedName, ".", "_")}, "_")
-		viper.BindEnv(prefixedName, strings.ToUpper(env))
+		err := viper.BindEnv(prefixedName, strings.ToUpper(env))
+		if err != nil {
+			log.WithFields(log.Fields{
+				"env":   env,
+				"error": err,
+			}).Error("Failed to bind env var")
+		}
 	}
 }
